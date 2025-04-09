@@ -18,8 +18,8 @@ WORKDIR /app
 
 COPY --from=builder /app/server .
 #COPY --from=builder /app/configs ./configs
-#COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/migrations ./migrations
 
-EXPOSE 50051
+EXPOSE 8080
 
 CMD ["./server"]

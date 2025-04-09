@@ -20,6 +20,8 @@ services:
       REDIS_PORT: 6379
       # Порт сервера
       SERVER_PORT: 8080
+      # Секретный ключ для jwt
+      JWT_SECRET_KEY: mySuperSecretKey123
     depends_on:
       db:
         condition: service_healthy

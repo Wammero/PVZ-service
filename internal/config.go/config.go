@@ -11,6 +11,7 @@ type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
 	Redis    RedisConfig
+	JWT      JWTConfig
 }
 
 type DatabaseConfig struct {
@@ -32,6 +33,10 @@ type RedisConfig struct {
 	DB       int
 }
 
+type JWTConfig struct {
+	SecretKey string
+}
+
 func NewConfig() *Config {
 	return &Config{
 		Database: DatabaseConfig{
@@ -49,6 +54,9 @@ func NewConfig() *Config {
 			Port:     getEnvOrFatal("REDIS_PORT"),
 			Password: getEnv("REDIS_PASSWORD", ""),
 			DB:       parseRedisDB(getEnv("REDIS_DB", "0")),
+		},
+		JWT: JWTConfig{
+			SecretKey: getEnvOrFatal("JWT_SECRET_KEY"),
 		},
 	}
 }

@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 
-	"github.com/Wammero/PVZ-service/internal/config.go"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -11,11 +10,11 @@ type RedisClient struct {
 	client *redis.Client
 }
 
-func NewRedisClient(cfg *config.RedisConfig) (*RedisClient, error) {
+func NewRedisClient(host, port, password string, db int) (*RedisClient, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr:     cfg.Host + ":" + cfg.Port,
-		Password: cfg.Password,
-		DB:       cfg.DB,
+		Addr:     host + ":" + port,
+		Password: password,
+		DB:       db,
 	})
 
 	_, err := client.Ping(context.Background()).Result()

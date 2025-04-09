@@ -10,18 +10,24 @@ import (
 	"github.com/Wammero/PVZ-service/internal/repository"
 	"github.com/Wammero/PVZ-service/internal/router"
 	"github.com/Wammero/PVZ-service/internal/service"
+	"github.com/Wammero/PVZ-service/pkg/jwt"
+	"github.com/Wammero/PVZ-service/pkg/migration"
 )
 
 func main() {
 	cfg := config.NewConfig()
 
-	repo, err := repository.New(&cfg.Database)
+	jwt.SetSecret(cfg.JWT.SecretKey)
+
+	connstr := cfg.Database.GetConnStr()
+	repo, err := repository.New(connstr)
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 	defer repo.Close()
+	migration.ApplyMigrations(connstr)
 
-	redisClient, err := cache.NewRedisClient(&cfg.Redis)
+	redisClient, err := cache.NewRedisClient(cfg.Redis.Host, cfg.Redis.Port, cfg.Redis.Password, cfg.Redis.DB)
 	if err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
