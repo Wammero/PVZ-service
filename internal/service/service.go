@@ -6,10 +6,10 @@ import (
 )
 
 type Service struct {
-	AuthService
-	PVZService
-	ReceptionService
-	ProductService
+	AuthService      AuthService
+	PVZService       PVZService
+	ReceptionService ReceptionService
+	ProductService   ProductService
 }
 
 func New(repo *repository.Repository, redisClient *cache.RedisClient) *Service {

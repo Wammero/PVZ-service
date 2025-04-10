@@ -7,11 +7,11 @@ import (
 )
 
 type Repository struct {
-	AuthRepository
-	PVZRepository
-	ReceptionRepositor
-	ProductRepository
-	pool *pgxpool.Pool
+	AuthRepository     AuthRepository
+	PVZRepository      PVZRepository
+	ReceptionRepositor ReceptionRepositor
+	ProductRepository  ProductRepository
+	pool               *pgxpool.Pool
 }
 
 func New(connstr string) (*Repository, error) {
