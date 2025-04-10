@@ -7,10 +7,10 @@ import (
 )
 
 type Repository struct {
-	Authorization
-	PVZ
-	Reception
-	Product
+	AuthRepository
+	PVZRepository
+	ReceptionRepositor
+	ProductRepository
 	pool *pgxpool.Pool
 }
 
@@ -21,11 +21,11 @@ func New(connstr string) (*Repository, error) {
 	}
 
 	return &Repository{
-		Authorization: NewAuthRepository(pool),
-		PVZ:           NewPVZRepository(pool),
-		Reception:     NewReceptionRepository(pool),
-		Product:       NewProductRepository(pool),
-		pool:          pool,
+		AuthRepository:     NewAuthRepository(pool),
+		PVZRepository:      NewPVZRepository(pool),
+		ReceptionRepositor: NewReceptionRepository(pool),
+		ProductRepository:  NewProductRepository(pool),
+		pool:               pool,
 	}, nil
 }
 

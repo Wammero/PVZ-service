@@ -7,22 +7,18 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type AuthRepository struct {
+type authRepository struct {
 	pool *pgxpool.Pool
 }
 
-func NewAuthRepository(pool *pgxpool.Pool) *AuthRepository {
-	return &AuthRepository{pool: pool}
+func NewAuthRepository(pool *pgxpool.Pool) *authRepository {
+	return &authRepository{pool: pool}
 }
 
-func (a *AuthRepository) DummyLogin(ctx context.Context, userRole model.UserRole) error {
+func (a *authRepository) Register(ctx context.Context, email, password string, userRole model.UserRole) error {
 	return nil
 }
 
-func (a *AuthRepository) Register(ctx context.Context, email, password string, userRole model.UserRole) error {
-	return nil
-}
-
-func (a *AuthRepository) Login(ctx context.Context, email, password string) error {
+func (a *authRepository) Login(ctx context.Context, email, password string) error {
 	return nil
 }

@@ -6,13 +6,17 @@ import (
 )
 
 type Service struct {
-	repo  *repository.Repository
-	redis *cache.RedisClient
+	AuthService
+	PVZService
+	ReceptionService
+	ProductService
 }
 
 func New(repo *repository.Repository, redisClient *cache.RedisClient) *Service {
 	return &Service{
-		repo:  repo,
-		redis: redisClient,
+		AuthService:      NewAuthService(repo.AuthRepository, redisClient),
+		PVZService:       NewPVZService(repo.PVZRepository, redisClient),
+		ReceptionService: NewReceptionService(repo.ReceptionRepositor, redisClient),
+		ProductService:   NewProductService(repo.ProductRepository, redisClient),
 	}
 }
