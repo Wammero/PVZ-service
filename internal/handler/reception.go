@@ -27,23 +27,11 @@ func (h *receptionHandler) CreateReception(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	receptionId, dateTime, err := h.service.CreateReception(r.Context(), req.PVZID)
+	reception, err := h.service.CreateReception(r.Context(), req.PVZID)
 	if err != nil {
 		responsemaker.WriteJSONError(w, fmt.Sprintf("Ошибка при создании приёмки: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	resp := struct {
-		ID       string `json:"id"`
-		DateTime string `json:"dateTime"`
-		PVZID    string `json:"pvzId"`
-		Status   string `json:"status"`
-	}{
-		ID:       receptionId,
-		DateTime: dateTime,
-		PVZID:    req.PVZID,
-		Status:   "in_progress",
-	}
-
-	responsemaker.WriteJSONResponse(w, resp, http.StatusOK)
+	responsemaker.WriteJSONResponse(w, reception, http.StatusOK)
 }

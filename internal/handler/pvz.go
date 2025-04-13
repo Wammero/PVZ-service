@@ -32,7 +32,7 @@ func (h *pVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
 
 	err := h.service.CreatePVZ(r.Context(), req.ID, req.RegistrationDate, req.City)
 	if err != nil {
-		responsemaker.WriteJSONError(w, fmt.Sprintf("Failed to create PVZ: %v", err), http.StatusInternalServerError)
+		responsemaker.WriteJSONError(w, fmt.Sprintf("Failed to create PVZ: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -46,7 +46,7 @@ func (h *pVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
 		City:             req.City,
 	}
 
-	responsemaker.WriteJSONResponse(w, resp, http.StatusOK)
+	responsemaker.WriteJSONResponse(w, resp, http.StatusCreated)
 }
 
 func (h *pVZHandler) GetPVZList(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +59,7 @@ func (h *pVZHandler) GetPVZList(w http.ResponseWriter, r *http.Request) {
 
 	pvzList, err := h.service.GetPVZList(r.Context(), startDateStr, endDateStr, pageStr, limitStr)
 	if err != nil {
-		responsemaker.WriteJSONError(w, "не удалось получить данные о pvz: "+err.Error(), http.StatusBadRequest)
+		responsemaker.WriteJSONError(w, fmt.Sprintf("не удалось получить данные о pvz: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -74,13 +74,13 @@ func (h *pVZHandler) CloseLastReception(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err := h.service.CloseLastReception(r.Context(), pvzID)
+	reception, err := h.service.CloseLastReception(r.Context(), pvzID)
 	if err != nil {
-		responsemaker.WriteJSONError(w, "не удалось закрыть приёмку: "+err.Error(), http.StatusBadRequest)
+		responsemaker.WriteJSONError(w, fmt.Sprintf("не удалось закрыть приёмку: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	responsemaker.WriteJSONResponse(w, "", http.StatusOK)
+	responsemaker.WriteJSONResponse(w, reception, http.StatusOK)
 }
 
 func (h *pVZHandler) DeleteLastProduct(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +93,7 @@ func (h *pVZHandler) DeleteLastProduct(w http.ResponseWriter, r *http.Request) {
 
 	err := h.service.DeleteLastProduct(r.Context(), pvzID)
 	if err != nil {
-		responsemaker.WriteJSONError(w, "не удалось закрыть приёмку: "+err.Error(), http.StatusBadRequest)
+		responsemaker.WriteJSONError(w, fmt.Sprintf("не удалось закрыть приёмку: %v", err), http.StatusBadRequest)
 		return
 	}
 

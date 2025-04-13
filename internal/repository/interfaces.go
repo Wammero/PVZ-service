@@ -19,17 +19,17 @@ type AuthRepository interface {
 type PVZRepository interface {
 	CreatePVZ(ctx context.Context, id, city string, regDate time.Time, creator sql.NullInt64) error
 	GetPVZList(ctx context.Context, tx pgx.Tx, startDate, endDate time.Time, page, limit int) ([]model.PVZWithReceptions, error)
-	CloseLastReception(ctx context.Context, tx pgx.Tx, pvzID string) error
+	CloseLastReception(ctx context.Context, tx pgx.Tx, pvzID string) (*model.Reception, error)
 	DeleteLastProduct(ctx context.Context, tx pgx.Tx, pvzID string) error
 	Pool() *pgxpool.Pool
 }
 
 type ReceptionRepositor interface {
-	CreateReception(ctx context.Context, tx pgx.Tx, pvzId string) (string, string, error)
+	CreateReception(ctx context.Context, tx pgx.Tx, pvzId string) (*model.Reception, error)
 	Pool() *pgxpool.Pool
 }
 
 type ProductRepository interface {
-	AddProduct(ctx context.Context, tx pgx.Tx, productType string, pvzId string) (string, string, string, error)
+	AddProduct(ctx context.Context, tx pgx.Tx, productType string, pvzId string) (*model.Product, error)
 	Pool() *pgxpool.Pool
 }

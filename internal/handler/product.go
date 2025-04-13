@@ -28,23 +28,11 @@ func (h *productHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productId, dateTime, reception_id, err := h.service.AddProduct(r.Context(), req.Type, req.PVZID)
+	product, err := h.service.AddProduct(r.Context(), req.Type, req.PVZID)
 	if err != nil {
 		responsemaker.WriteJSONError(w, fmt.Sprintf("Ошибка при создании приёмки: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	resp := struct {
-		ID          string `json:"id"`
-		DateTime    string `json:"dateTime"`
-		Type        string `json:"type"`
-		ReceptionId string `json:"reception_id"`
-	}{
-		ID:          productId,
-		DateTime:    dateTime,
-		Type:        req.Type,
-		ReceptionId: reception_id,
-	}
-
-	responsemaker.WriteJSONResponse(w, resp, http.StatusOK)
+	responsemaker.WriteJSONResponse(w, product, http.StatusCreated)
 }

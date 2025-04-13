@@ -3,7 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/Wammero/PVZ-service/internal/model"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -20,33 +22,33 @@ func (r *receptionRepositor) Pool() *pgxpool.Pool {
 	return r.pool
 }
 
-func (r *receptionRepositor) CreateReception(ctx context.Context, tx pgx.Tx, pvzId string) (string, string, error) {
-	checkQuery := `
-		SELECT 1 FROM receptions
-		WHERE pvz_id = $1 AND status = 'in_progress'
-		LIMIT 1;
+func (r *receptionRepositor) CreateReception(ctx context.Context, tx pgx.Tx, pvzId string) (*model.Reception, error) {
+	query := `
+		WITH insert_reception AS (
+			INSERT INTO receptions (pvz_id, status)
+			SELECT $1, 'in_progress'
+			WHERE NOT EXISTS (
+				SELECT 1 FROM receptions WHERE pvz_id = $1 AND status = 'in_progress'
+			)
+			RETURNING reception_id, reception_time
+		)
+		SELECT reception_id, reception_time FROM insert_reception;
 	`
 
-	var exists int
-	err := tx.QueryRow(ctx, checkQuery, pvzId).Scan(&exists)
-	if err != nil && err.Error() != "no rows in result set" {
-		return "", "", fmt.Errorf("ошибка при проверке существующей приёмки: %v", err)
-	}
-	if exists == 1 {
-		return "", "", fmt.Errorf("уже есть приёмка со статусом 'in_progress' для ПВЗ %s", pvzId)
-	}
-
-	insertQuery := `
-		INSERT INTO receptions (pvz_id, status)
-		VALUES ($1, 'in_progress')
-		RETURNING reception_id::text, reception_time::text;
-	`
-
-	var receptionId, dateTime string
-	err = tx.QueryRow(ctx, insertQuery, pvzId).Scan(&receptionId, &dateTime)
+	var receptionID string
+	var receptionTime time.Time
+	err := tx.QueryRow(ctx, query, pvzId).Scan(&receptionID, &receptionTime)
 	if err != nil {
-		return "", "", fmt.Errorf("не удалось создать приёмку: %v", err)
+		if err.Error() == "no rows in result set" {
+			return nil, fmt.Errorf("уже есть приёмка со статусом 'in_progress' для ПВЗ %s", pvzId)
+		}
+		return nil, fmt.Errorf("ошибка при создании приёмки: %v", err)
 	}
 
-	return receptionId, dateTime, nil
+	return &model.Reception{
+		ID:     receptionID,
+		Date:   receptionTime,
+		PVZID:  pvzId,
+		Status: "in_progress",
+	}, nil
 }

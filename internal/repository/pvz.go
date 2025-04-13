@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
@@ -138,88 +137,71 @@ func (p *pvzRepository) GetPVZList(ctx context.Context, tx pgx.Tx, startDate, en
 	return pvzList, nil
 }
 
-func (p *pvzRepository) CloseLastReception(ctx context.Context, tx pgx.Tx, pvzID string) error {
-	var receptionID string
+func (p *pvzRepository) CloseLastReception(ctx context.Context, tx pgx.Tx, pvzID string) (*model.Reception, error) {
+	var reception model.Reception
+
 	query := `
-		SELECT reception_id FROM receptions
-		WHERE pvz_id = $1 AND status = 'in_progress'
-		ORDER BY reception_time DESC
-		LIMIT 1
+		WITH updated AS (
+			UPDATE receptions
+			SET status = 'close'
+			WHERE pvz_id = $1 AND status = 'in_progress'
+			RETURNING reception_id, reception_time, pvz_id, status
+		)
+		UPDATE reception_products
+		SET is_active = false
+		FROM updated
+		WHERE reception_products.reception_id = updated.reception_id
+		RETURNING updated.reception_id, updated.reception_time, updated.pvz_id, updated.status
 	`
-	err := tx.QueryRow(ctx, query, pvzID).Scan(&receptionID)
+
+	err := tx.QueryRow(ctx, query, pvzID).Scan(&reception.ID, &reception.Date, &reception.PVZID, &reception.Status)
 	if err != nil {
 		if err.Error() == "no rows in result set" {
-			return fmt.Errorf("нет активной приёмки для ПВЗ %s", pvzID)
+			return nil, fmt.Errorf("нет активной приёмки для ПВЗ %s", pvzID)
 		}
-		return fmt.Errorf("ошибка при поиске активной приёмки: %w", err)
+		return nil, fmt.Errorf("не удалось закрыть приёмку: %w", err)
 	}
 
-	updateQuery := `
-		UPDATE receptions
-		SET status = 'close'
-		WHERE reception_id = $1
-	`
-	_, err = tx.Exec(ctx, updateQuery, receptionID)
-	if err != nil {
-		return fmt.Errorf("не удалось закрыть приёмку: %w", err)
-	}
-
-	return nil
+	return &reception, nil
 }
 
 func (p *pvzRepository) DeleteLastProduct(ctx context.Context, tx pgx.Tx, pvzID string) error {
-	// Получаем ID текущей незакрытой приёмки
-	var receptionID string
-	err := tx.QueryRow(ctx, `
-		SELECT reception_id
-		FROM receptions
-		WHERE pvz_id = $1 AND status = 'in_progress'
-		ORDER BY reception_time DESC
-		LIMIT 1
-	`, pvzID).Scan(&receptionID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return fmt.Errorf("no active reception found for pvz %s", pvzID)
-		}
-		return fmt.Errorf("failed to get current reception: %w", err)
-	}
-
-	// Получаем последний добавленный продукт в рамках этой приёмки (LIFO)
-	var productID string
-	err = tx.QueryRow(ctx, `
-		SELECT rp.product_id
-		FROM reception_products rp
-		JOIN products p ON p.product_id = rp.product_id
-		WHERE rp.reception_id = $1 AND p.is_active = TRUE
-		ORDER BY p.reception_time DESC
-		LIMIT 1
-	`, receptionID).Scan(&productID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return fmt.Errorf("no products to delete in current reception")
-		}
-		return fmt.Errorf("failed to get last product: %w", err)
-	}
-
-	// Помечаем продукт как неактивный
-	_, err = tx.Exec(ctx, `
-		UPDATE products
-		SET is_active = FALSE
-		WHERE product_id = $1
-	`, productID)
-	if err != nil {
-		return fmt.Errorf("failed to deactivate product: %w", err)
-	}
-
-	// Удаляем продукт из связующей таблицы
-	_, err = tx.Exec(ctx, `
+	query := `
+		WITH active_reception AS (
+			SELECT reception_id
+			FROM receptions
+			WHERE pvz_id = $1 AND status = 'in_progress'
+			ORDER BY reception_time DESC
+			LIMIT 1
+		),
+		last_product AS (
+			SELECT rp.product_id
+			FROM reception_products rp
+			JOIN products p ON p.product_id = rp.product_id
+			JOIN active_reception ar ON ar.reception_id = rp.reception_id
+			WHERE p.is_active = TRUE AND rp.is_active = TRUE
+			ORDER BY p.reception_time DESC
+			LIMIT 1
+		),
+		update_products AS (
+			UPDATE products
+			SET is_active = FALSE
+			FROM last_product lp
+			WHERE products.product_id = lp.product_id
+		)
 		UPDATE reception_products
 		SET is_active = FALSE
-		WHERE reception_id = $1 AND product_id = $2
-	`, receptionID, productID)
-	if err != nil {
-		return fmt.Errorf("failed to delete product from reception_products: %w", err)
-	}
+		FROM last_product lp, active_reception ar
+		WHERE reception_products.product_id = lp.product_id
+		  AND reception_products.reception_id = ar.reception_id;
+	`
 
+	tag, err := tx.Exec(ctx, query, pvzID)
+	if err != nil {
+		return fmt.Errorf("ошибка при удалении последнего продукта: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("нет активных продуктов для удаления")
+	}
 	return nil
 }

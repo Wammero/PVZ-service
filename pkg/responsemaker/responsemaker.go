@@ -3,6 +3,8 @@ package responsemaker
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/Wammero/PVZ-service/internal/model"
 )
 
 type ErrorResponse struct {
@@ -10,7 +12,7 @@ type ErrorResponse struct {
 }
 
 func WriteJSONError(w http.ResponseWriter, message string, statusCode int) {
-	WriteJSONResponse(w, ErrorResponse{Error: message}, statusCode)
+	WriteJSONResponse(w, model.Error{Message: "Invalid request body"}, statusCode)
 }
 
 // writeJSONResponse отправляет JSON-ответ с отступами

@@ -90,10 +90,10 @@ func (s *pvzService) GetPVZList(ctx context.Context, startDateStr, endDateStr, p
 	return pvzList, nil
 }
 
-func (s *pvzService) CloseLastReception(ctx context.Context, pvzID string) error {
+func (s *pvzService) CloseLastReception(ctx context.Context, pvzID string) (*model.Reception, error) {
 	tx, err := s.repo.Pool().Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("не удалось начать транзакцию: %v", err)
+		return nil, err
 	}
 	defer func() {
 		if err != nil {
@@ -103,14 +103,14 @@ func (s *pvzService) CloseLastReception(ctx context.Context, pvzID string) error
 		}
 	}()
 
-	err = s.repo.CloseLastReception(ctx, tx, pvzID)
-	return err
+	reception, err := s.repo.CloseLastReception(ctx, tx, pvzID)
+	return reception, err
 }
 
 func (s *pvzService) DeleteLastProduct(ctx context.Context, pvzID string) error {
 	tx, err := s.repo.Pool().Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("не удалось начать транзакцию: %v", err)
+		return err
 	}
 	defer func() {
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Wammero/PVZ-service/internal/model"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -20,41 +21,43 @@ func (r *productRepository) Pool() *pgxpool.Pool {
 	return r.pool
 }
 
-func (p *productRepository) AddProduct(ctx context.Context, tx pgx.Tx, productType string, pvzId string) (string, string, string, error) {
-	var receptionID string
-	checkReceptionQuery := `
-		SELECT reception_id FROM receptions
-		WHERE pvz_id = $1 AND status = 'in_progress'
-		ORDER BY reception_time DESC
-		LIMIT 1;
+func (p *productRepository) AddProduct(ctx context.Context, tx pgx.Tx, productType string, pvzId string) (*model.Product, error) {
+	query := `
+		WITH active_reception AS (
+			SELECT reception_id
+			FROM receptions
+			WHERE pvz_id = $1 AND status = 'in_progress'
+			ORDER BY reception_time DESC
+			LIMIT 1
+		),
+		inserted_product AS (
+			INSERT INTO products (type)
+			VALUES ($2)
+			RETURNING product_id, reception_time
+		),
+		link_product AS (
+			INSERT INTO reception_products (reception_id, product_id)
+			SELECT ar.reception_id, ip.product_id
+			FROM active_reception ar, inserted_product ip
+		)
+		SELECT ip.product_id, ip.reception_time, ar.reception_id
+		FROM inserted_product ip, active_reception ar;
 	`
-	err := tx.QueryRow(ctx, checkReceptionQuery, pvzId).Scan(&receptionID)
+
+	var product model.Product
+	err := tx.QueryRow(ctx, query, pvzId, productType).Scan(
+		&product.ID,
+		&product.Date,
+		&product.ReceptionID,
+	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return "", "", "", fmt.Errorf("нет открытой приёмки для ПВЗ %s", pvzId)
+			return nil, fmt.Errorf("нет активной приёмки для ПВЗ %s", pvzId)
 		}
-		return "", "", "", fmt.Errorf("ошибка при поиске активной приёмки: %w", err)
+		return nil, fmt.Errorf("ошибка при добавлении товара: %w", err)
 	}
 
-	var productID, receptionTime string
-	insertProductQuery := `
-		INSERT INTO products (type)
-		VALUES ($1)
-		RETURNING product_id::text, reception_time::text;
-	`
-	err = tx.QueryRow(ctx, insertProductQuery, productType).Scan(&productID, &receptionTime)
-	if err != nil {
-		return "", "", "", fmt.Errorf("не удалось добавить товар: %w", err)
-	}
+	product.Type = productType
 
-	linkQuery := `
-		INSERT INTO reception_products (reception_id, product_id)
-		VALUES ($1, $2);
-	`
-	_, err = tx.Exec(ctx, linkQuery, receptionID, productID)
-	if err != nil {
-		return "", "", "", fmt.Errorf("не удалось привязать товар к приёмке: %w", err)
-	}
-
-	return productID, receptionTime, receptionID, nil
+	return &product, nil
 }

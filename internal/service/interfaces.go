@@ -14,14 +14,14 @@ type AuthService interface {
 type PVZService interface {
 	CreatePVZ(ctx context.Context, id, registrationDate, city string) error
 	GetPVZList(ctx context.Context, startDateStr, endDateStr, pageStr, limitStr string) ([]model.PVZWithReceptions, error)
-	CloseLastReception(ctx context.Context, pvzID string) error
+	CloseLastReception(ctx context.Context, pvzID string) (*model.Reception, error)
 	DeleteLastProduct(ctx context.Context, pvzID string) error
 }
 
 type ReceptionService interface {
-	CreateReception(ctx context.Context, pvzId string) (string, string, error)
+	CreateReception(ctx context.Context, pvzId string) (*model.Reception, error)
 }
 
 type ProductService interface {
-	AddProduct(ctx context.Context, productType string, pvzId string) (string, string, string, error)
+	AddProduct(ctx context.Context, productType string, pvzId string) (*model.Product, error)
 }
