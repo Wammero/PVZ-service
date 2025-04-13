@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Wammero/PVZ-service/internal/cache"
 	"github.com/Wammero/PVZ-service/internal/model"
@@ -17,6 +18,22 @@ func NewProductService(repo repository.ProductRepository, redis *cache.RedisClie
 	return &productService{repo: repo, redis: redis}
 }
 
-func (s *productService) AddProduct(ctx context.Context, productType model.ProductType, pvzId string) error {
-	return s.repo.AddProduct(ctx, productType, pvzId)
+func (s *productService) AddProduct(ctx context.Context, productType string, pvzId string) (string, string, string, error) {
+	if !model.IsValidProductType(model.ProductType(productType)) {
+		return "", "", "", fmt.Errorf("несуществующая категория продукта")
+	}
+
+	tx, err := s.repo.Pool().Begin(ctx)
+	if err != nil {
+		return "", "", "", fmt.Errorf("не удалось начать транзакцию: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+		} else {
+			_ = tx.Commit(ctx)
+		}
+	}()
+	productID, receptionTime, receptionID, err := s.repo.AddProduct(ctx, tx, productType, pvzId)
+	return productID, receptionTime, receptionID, err
 }

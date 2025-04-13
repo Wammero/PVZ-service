@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/Wammero/PVZ-service/internal/model"
 	"github.com/Wammero/PVZ-service/pkg/jwt"
 	"github.com/Wammero/PVZ-service/pkg/responsemaker"
 )
@@ -20,6 +21,10 @@ func RequireRole(allowedRoles ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			role, ok := jwt.GetUserRole(r.Context())
+			if !model.IsValidUserRole(model.UserRole(role)) {
+				responsemaker.WriteJSONError(w, "несуществующая роль", http.StatusBadRequest)
+				return
+			}
 			if !ok || !hasAccess(role, allowedRoles...) {
 				responsemaker.WriteJSONError(w, "доступ запрещён: недостаточно прав", http.StatusForbidden)
 				return

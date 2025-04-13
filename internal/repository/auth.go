@@ -15,6 +15,10 @@ func NewAuthRepository(pool *pgxpool.Pool) *authRepository {
 	return &authRepository{pool: pool}
 }
 
+func (r *authRepository) Pool() *pgxpool.Pool {
+	return r.pool
+}
+
 func (a *authRepository) Register(ctx context.Context, email, password string, userRole model.UserRole) error {
 	return nil
 }

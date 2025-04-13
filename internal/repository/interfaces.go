@@ -6,24 +6,30 @@ import (
 	"time"
 
 	"github.com/Wammero/PVZ-service/internal/model"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type AuthRepository interface {
 	Register(ctx context.Context, email, password string, userRole model.UserRole) error
 	Login(ctx context.Context, email, password string) error
+	Pool() *pgxpool.Pool
 }
 
 type PVZRepository interface {
 	CreatePVZ(ctx context.Context, id, city string, regDate time.Time, creator sql.NullInt64) error
-	GetPVZList(ctx context.Context) error
-	CloseLastReception(ctx context.Context, pvzID string) error
-	DeleteLastProduct(ctx context.Context, pvzID string) error
+	GetPVZList(ctx context.Context, tx pgx.Tx, startDate, endDate time.Time, page, limit int) ([]model.PVZWithReceptions, error)
+	CloseLastReception(ctx context.Context, tx pgx.Tx, pvzID string) error
+	DeleteLastProduct(ctx context.Context, tx pgx.Tx, pvzID string) error
+	Pool() *pgxpool.Pool
 }
 
 type ReceptionRepositor interface {
-	CreateReception(ctx context.Context, pvzId string) error
+	CreateReception(ctx context.Context, tx pgx.Tx, pvzId string) (string, string, error)
+	Pool() *pgxpool.Pool
 }
 
 type ProductRepository interface {
-	AddProduct(ctx context.Context, productType model.ProductType, pvzId string) error
+	AddProduct(ctx context.Context, tx pgx.Tx, productType string, pvzId string) (string, string, string, error)
+	Pool() *pgxpool.Pool
 }

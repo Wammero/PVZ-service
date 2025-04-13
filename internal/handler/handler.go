@@ -33,7 +33,7 @@ func (h *Handler) SetupRoutes(r *chi.Mux) {
 
 		r.Route("/pvz", func(r chi.Router) {
 			r.With(middleware.RequireRole("moderator")).Post("/", h.PVZHandler.CreatePVZ)
-			r.With(middleware.RequireRole("employee")).Get("/", h.PVZHandler.GetPVZList)
+			r.With(middleware.RequireRole("employee", "moderator")).Get("/", h.PVZHandler.GetPVZList)
 			r.With(middleware.RequireRole("employee")).Post("/{pvzId}/close_last_reception", h.PVZHandler.CloseLastReception)
 			r.With(middleware.RequireRole("employee")).Post("/{pvzId}/delete_last_product", h.PVZHandler.DeleteLastProduct)
 		})

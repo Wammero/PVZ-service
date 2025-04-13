@@ -3,8 +3,8 @@ package model
 type ProductType string
 
 const (
-	TypeElectronics ProductType = "электроника"
-	TypeClothing    ProductType = "одежда"
+	TypeElectronics ProductType = "electronics"
+	TypeClothing    ProductType = "clothes"
 )
 
 var validProductTypes = map[ProductType]struct{}{

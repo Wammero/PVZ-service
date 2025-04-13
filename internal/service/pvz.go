@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Wammero/PVZ-service/internal/cache"
+	"github.com/Wammero/PVZ-service/internal/model"
 	"github.com/Wammero/PVZ-service/internal/repository"
 	"github.com/Wammero/PVZ-service/pkg/jwt"
 )
@@ -49,14 +51,78 @@ func (s *pvzService) CreatePVZ(ctx context.Context, id, registrationDate, city s
 	return err
 }
 
-func (s *pvzService) GetPVZList(ctx context.Context) error {
-	return s.repo.GetPVZList(ctx)
+func (s *pvzService) GetPVZList(ctx context.Context, startDateStr, endDateStr, pageStr, limitStr string) ([]model.PVZWithReceptions, error) {
+	startDate, err := time.Parse(time.RFC3339, startDateStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid startDate format: %w", err)
+	}
+
+	endDate, err := time.Parse(time.RFC3339, endDateStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid endDate format: %w", err)
+	}
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 10
+	}
+
+	tx, err := s.repo.Pool().Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("не удалось начать транзакцию: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+		} else {
+			_ = tx.Commit(ctx)
+		}
+	}()
+
+	pvzList, err := s.repo.GetPVZList(ctx, tx, startDate, endDate, page, limit)
+	if err != nil {
+		return nil, fmt.Errorf("не удалось получить данные о pvz: %v", err)
+	}
+
+	return pvzList, nil
 }
 
 func (s *pvzService) CloseLastReception(ctx context.Context, pvzID string) error {
-	return s.repo.CloseLastReception(ctx, pvzID)
+	tx, err := s.repo.Pool().Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("не удалось начать транзакцию: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+		} else {
+			_ = tx.Commit(ctx)
+		}
+	}()
+
+	err = s.repo.CloseLastReception(ctx, tx, pvzID)
+	return err
 }
 
 func (s *pvzService) DeleteLastProduct(ctx context.Context, pvzID string) error {
-	return s.repo.DeleteLastProduct(ctx, pvzID)
+	tx, err := s.repo.Pool().Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("не удалось начать транзакцию: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+		} else {
+			_ = tx.Commit(ctx)
+		}
+	}()
+
+	err = s.repo.DeleteLastProduct(ctx, tx, pvzID)
+
+	return err
 }

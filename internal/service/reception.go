@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Wammero/PVZ-service/internal/cache"
 	"github.com/Wammero/PVZ-service/internal/repository"
@@ -16,6 +17,22 @@ func NewReceptionService(repo repository.ReceptionRepositor, redis *cache.RedisC
 	return &receptionService{repo: repo, redis: redis}
 }
 
-func (s *receptionService) CreateReception(ctx context.Context, pvzId string) error {
-	return s.repo.CreateReception(ctx, pvzId)
+func (s *receptionService) CreateReception(ctx context.Context, pvzId string) (string, string, error) {
+	tx, err := s.repo.Pool().Begin(ctx)
+	if err != nil {
+		return "", "", fmt.Errorf("не удалось начать транзакцию: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+		} else {
+			_ = tx.Commit(ctx)
+		}
+	}()
+	receptionId, dateTime, err := s.repo.CreateReception(ctx, tx, pvzId)
+	if err != nil {
+		return "", "", err
+	}
+
+	return receptionId, dateTime, nil
 }
