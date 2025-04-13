@@ -1,0 +1,18 @@
+-- Пользователи
+CREATE TABLE IF NOT EXISTS users (
+    user_id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    salt VARCHAR(255) NOT NULL,
+    role TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS pvz (
+    pvz SERIAL PRIMARY KEY,
+    id UUID NOT NULL UNIQUE,  
+    creator_id INT, 
+    registration_date TIMESTAMP NOT NULL,
+    city VARCHAR(100) NOT NULL
+);

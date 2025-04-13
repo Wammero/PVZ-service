@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"github.com/Wammero/PVZ-service/internal/middleware"
 	"github.com/Wammero/PVZ-service/internal/service"
-	"github.com/Wammero/PVZ-service/pkg/jwt"
 
 	"github.com/go-chi/chi"
 )
@@ -29,17 +29,17 @@ func (h *Handler) SetupRoutes(r *chi.Mux) {
 	r.Post("/login", h.AuthHandler.Login)
 
 	r.Group(func(r chi.Router) {
-		r.Use(jwt.JWTValidator)
+		r.Use(middleware.JWTValidator)
 
 		r.Route("/pvz", func(r chi.Router) {
-			r.Post("/", h.PVZHandler.CreatePVZ)
-			r.Get("/", h.PVZHandler.GetPVZList)
-			r.Post("/{pvzId}/close_last_reception", h.PVZHandler.CloseLastReception)
-			r.Post("/{pvzId}/delete_last_product", h.PVZHandler.DeleteLastProduct)
+			r.With(middleware.RequireRole("moderator")).Post("/", h.PVZHandler.CreatePVZ)
+			r.With(middleware.RequireRole("employee")).Get("/", h.PVZHandler.GetPVZList)
+			r.With(middleware.RequireRole("employee")).Post("/{pvzId}/close_last_reception", h.PVZHandler.CloseLastReception)
+			r.With(middleware.RequireRole("employee")).Post("/{pvzId}/delete_last_product", h.PVZHandler.DeleteLastProduct)
 		})
 
-		r.Post("/receptions", h.ReceptionHandler.CreateReception)
+		r.With(middleware.RequireRole("employee")).Post("/receptions", h.ReceptionHandler.CreateReception)
 
-		r.Post("/products", h.ProductHandler.AddProduct)
+		r.With(middleware.RequireRole("employee")).Post("/products", h.ProductHandler.AddProduct)
 	})
 }

@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/Wammero/PVZ-service/internal/model"
 )
@@ -12,7 +14,7 @@ type AuthRepository interface {
 }
 
 type PVZRepository interface {
-	CreatePVZ(ctx context.Context, id, registrationDate, city string) error
+	CreatePVZ(ctx context.Context, id, city string, regDate time.Time, creator sql.NullInt64) error
 	GetPVZList(ctx context.Context) error
 	CloseLastReception(ctx context.Context, pvzID string) error
 	DeleteLastProduct(ctx context.Context, pvzID string) error

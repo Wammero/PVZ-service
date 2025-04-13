@@ -7,26 +7,29 @@ const (
 	TypeClothing    ProductType = "одежда"
 )
 
+var validProductTypes = map[ProductType]struct{}{
+	TypeElectronics: {},
+	TypeClothing:    {},
+}
+
 func IsValidProductType(pt ProductType) bool {
-	switch pt {
-	case TypeElectronics, TypeClothing:
-		return true
-	}
-	return false
+	_, ok := validProductTypes[pt]
+	return ok
 }
 
 type UserRole string
 
 const (
-	RoleClient    UserRole = "client"
 	RoleModerator UserRole = "moderator"
 	RoleEmployee  UserRole = "employee"
 )
 
+var validUserRoles = map[UserRole]struct{}{
+	RoleModerator: {},
+	RoleEmployee:  {},
+}
+
 func IsValidUserRole(role UserRole) bool {
-	switch role {
-	case RoleClient, RoleModerator, RoleEmployee:
-		return true
-	}
-	return false
+	_, ok := validUserRoles[role]
+	return ok
 }

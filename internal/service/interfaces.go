@@ -9,7 +9,7 @@ import (
 type AuthService interface {
 	Register(ctx context.Context, email, password string, userRole model.UserRole) error
 	Login(ctx context.Context, email, password string) error
-	DummyLogin(ctx context.Context, userRole model.UserRole) error
+	DummyLogin(ctx context.Context, userRole string) (string, error)
 }
 type PVZService interface {
 	CreatePVZ(ctx context.Context, id, registrationDate, city string) error
