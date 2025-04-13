@@ -22,7 +22,9 @@ func NewRedisClient(host, port, password string, db int) (*RedisClient, error) {
 		return nil, err
 	}
 
-	return &RedisClient{client: client}, nil
+	return &RedisClient{
+		client: client,
+	}, nil
 }
 
 func (r *RedisClient) Close() error {
@@ -30,12 +32,4 @@ func (r *RedisClient) Close() error {
 		return r.client.Close()
 	}
 	return nil
-}
-
-func (r *RedisClient) Set(ctx context.Context, key string, value interface{}) error {
-	return r.client.Set(ctx, key, value, 0).Err()
-}
-
-func (r *RedisClient) Get(ctx context.Context, key string) (string, error) {
-	return r.client.Get(ctx, key).Result()
 }

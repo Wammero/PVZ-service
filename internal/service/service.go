@@ -14,9 +14,9 @@ type Service struct {
 
 func New(repo *repository.Repository, redisClient *cache.RedisClient) *Service {
 	return &Service{
-		AuthService:      NewAuthService(repo.AuthRepository, redisClient),
-		PVZService:       NewPVZService(repo.PVZRepository, redisClient),
-		ReceptionService: NewReceptionService(repo.ReceptionRepositor, redisClient),
-		ProductService:   NewProductService(repo.ProductRepository, redisClient),
+		AuthService:      NewAuthService(repo.AuthRepository),
+		PVZService:       NewPVZService(repo.PVZRepository),
+		ReceptionService: NewReceptionService(repo.ReceptionRepositor),
+		ProductService:   NewProductService(repo.ProductRepository),
 	}
 }

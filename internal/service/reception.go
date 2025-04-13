@@ -10,11 +10,11 @@ import (
 
 type receptionService struct {
 	repo  repository.ReceptionRepositor
-	redis *cache.RedisClient
+	redis cache.RedisClient
 }
 
-func NewReceptionService(repo repository.ReceptionRepositor, redis *cache.RedisClient) *receptionService {
-	return &receptionService{repo: repo, redis: redis}
+func NewReceptionService(repo repository.ReceptionRepositor) *receptionService {
+	return &receptionService{repo: repo}
 }
 
 func (s *receptionService) CreateReception(ctx context.Context, pvzId string) (string, string, error) {

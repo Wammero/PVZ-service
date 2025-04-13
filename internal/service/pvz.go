@@ -7,19 +7,17 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Wammero/PVZ-service/internal/cache"
 	"github.com/Wammero/PVZ-service/internal/model"
 	"github.com/Wammero/PVZ-service/internal/repository"
 	"github.com/Wammero/PVZ-service/pkg/jwt"
 )
 
 type pvzService struct {
-	repo  repository.PVZRepository
-	redis *cache.RedisClient
+	repo repository.PVZRepository
 }
 
-func NewPVZService(repo repository.PVZRepository, redis *cache.RedisClient) *pvzService {
-	return &pvzService{repo: repo, redis: redis}
+func NewPVZService(repo repository.PVZRepository) *pvzService {
+	return &pvzService{repo: repo}
 }
 
 func (s *pvzService) CreatePVZ(ctx context.Context, id, registrationDate, city string) error {

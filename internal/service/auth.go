@@ -4,19 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Wammero/PVZ-service/internal/cache"
 	"github.com/Wammero/PVZ-service/internal/model"
 	"github.com/Wammero/PVZ-service/internal/repository"
 	"github.com/Wammero/PVZ-service/pkg/jwt"
 )
 
 type authService struct {
-	repo  repository.AuthRepository
-	redis *cache.RedisClient
+	repo repository.AuthRepository
 }
 
-func NewAuthService(repo repository.AuthRepository, redis *cache.RedisClient) *authService {
-	return &authService{repo: repo, redis: redis}
+func NewAuthService(repo repository.AuthRepository) *authService {
+	return &authService{repo: repo}
 }
 
 func (s *authService) Register(ctx context.Context, email, password string, role model.UserRole) error {

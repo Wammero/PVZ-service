@@ -4,18 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Wammero/PVZ-service/internal/cache"
 	"github.com/Wammero/PVZ-service/internal/model"
 	"github.com/Wammero/PVZ-service/internal/repository"
 )
 
 type productService struct {
-	repo  repository.ProductRepository
-	redis *cache.RedisClient
+	repo repository.ProductRepository
 }
 
-func NewProductService(repo repository.ProductRepository, redis *cache.RedisClient) *productService {
-	return &productService{repo: repo, redis: redis}
+func NewProductService(repo repository.ProductRepository) *productService {
+	return &productService{repo: repo}
 }
 
 func (s *productService) AddProduct(ctx context.Context, productType string, pvzId string) (string, string, string, error) {
