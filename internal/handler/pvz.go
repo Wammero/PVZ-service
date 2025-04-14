@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Wammero/PVZ-service/internal/metrics"
 	"github.com/Wammero/PVZ-service/internal/model"
 	"github.com/Wammero/PVZ-service/internal/service"
 	"github.com/Wammero/PVZ-service/pkg/responsemaker"
@@ -32,6 +33,8 @@ func (h *pVZHandler) CreatePVZ(w http.ResponseWriter, r *http.Request) {
 		responsemaker.WriteJSONError(w, fmt.Sprintf("Failed to create PVZ: %v", err), http.StatusBadRequest)
 		return
 	}
+
+	metrics.CreatedPVZ.Inc()
 
 	responsemaker.WriteJSONResponse(w, pvz, http.StatusCreated)
 }

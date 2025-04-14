@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Wammero/PVZ-service/internal/cache"
 	"github.com/Wammero/PVZ-service/internal/model"
 	"github.com/Wammero/PVZ-service/internal/repository"
 )
 
 type receptionService struct {
-	repo  repository.ReceptionRepositor
-	redis cache.RedisClient
+	repo repository.ReceptionRepositor
 }
 
 func NewReceptionService(repo repository.ReceptionRepositor) *receptionService {

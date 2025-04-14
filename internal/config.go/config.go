@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 )
 
 type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
-	Redis    RedisConfig
 	JWT      JWTConfig
 }
 
@@ -24,13 +22,6 @@ type DatabaseConfig struct {
 
 type ServerConfig struct {
 	Port string
-}
-
-type RedisConfig struct {
-	Host     string
-	Port     string
-	Password string
-	DB       int
 }
 
 type JWTConfig struct {
@@ -49,12 +40,6 @@ func NewConfig() *Config {
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "8080"),
 		},
-		Redis: RedisConfig{
-			Host:     getEnvOrFatal("REDIS_HOST"),
-			Port:     getEnvOrFatal("REDIS_PORT"),
-			Password: getEnv("REDIS_PASSWORD", ""),
-			DB:       parseRedisDB(getEnv("REDIS_DB", "0")),
-		},
 		JWT: JWTConfig{
 			SecretKey: getEnvOrFatal("JWT_SECRET_KEY"),
 		},
@@ -64,14 +49,6 @@ func NewConfig() *Config {
 func (db DatabaseConfig) GetConnStr() string {
 	return fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable",
 		db.User, db.Password, db.Host, db.Port, db.Name)
-}
-
-func parseRedisDB(db string) int {
-	parsed, err := strconv.Atoi(db)
-	if err != nil {
-		log.Fatalf("Invalid REDIS_DB value: %s", db)
-	}
-	return parsed
 }
 
 func getEnvOrFatal(key string) string {

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/Wammero/PVZ-service/internal/cache"
 	"github.com/Wammero/PVZ-service/internal/repository"
 )
 
@@ -12,7 +11,7 @@ type Service struct {
 	ProductService   ProductService
 }
 
-func New(repo *repository.Repository, redisClient *cache.RedisClient) *Service {
+func New(repo *repository.Repository) *Service {
 	return &Service{
 		AuthService:      NewAuthService(repo.AuthRepository),
 		PVZService:       NewPVZService(repo.PVZRepository),

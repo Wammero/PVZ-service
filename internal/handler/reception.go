@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Wammero/PVZ-service/internal/metrics"
 	"github.com/Wammero/PVZ-service/internal/service"
 	"github.com/Wammero/PVZ-service/pkg/responsemaker"
 )
@@ -32,6 +33,8 @@ func (h *receptionHandler) CreateReception(w http.ResponseWriter, r *http.Reques
 		responsemaker.WriteJSONError(w, fmt.Sprintf("Ошибка при создании приёмки: %v", err), http.StatusBadRequest)
 		return
 	}
+
+	metrics.CreatedOrders.Inc()
 
 	responsemaker.WriteJSONResponse(w, reception, http.StatusOK)
 }
