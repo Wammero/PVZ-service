@@ -73,11 +73,11 @@ docker-compose -f docker-compose.test.yml down -v
 
 ## Скриншот дашборда Grafana
 
-![alt text](image-2.png)
+![alt text](image.png)
 
 ## Скриншот тестового покрытия
 
-![alt text](image.png)
+![alt text](image-1.png)
 
 Как видно из скриншота, текущее тестовое покрытие включает:
 
