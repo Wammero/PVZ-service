@@ -23,12 +23,12 @@ func (r *pvzRepository) Pool() *pgxpool.Pool {
 	return r.pool
 }
 
-func (p *pvzRepository) CreatePVZ(ctx context.Context, id, city string, regDate time.Time, creator sql.NullInt64) error {
+func (p *pvzRepository) CreatePVZ(ctx context.Context, id, city string, registrationDate time.Time, creator sql.NullInt64) error {
 	query := `
 		INSERT INTO pvz (id, creator_id, registration_date, city)
 		VALUES ($1, $2, $3, $4);`
 
-	_, err := p.pool.Exec(ctx, query, id, creator, regDate, city)
+	_, err := p.pool.Exec(ctx, query, id, creator, registrationDate, city)
 	if err != nil {
 		if pgx.ErrNoRows == err {
 			return fmt.Errorf("пункт приёма заказов с таким id уже существует")
@@ -46,6 +46,7 @@ func (p *pvzRepository) GetPVZList(ctx context.Context, tx pgx.Tx, startDate, en
 			SELECT r.reception_id, r.reception_time, r.status, r.pvz_id
 			FROM receptions r
 			WHERE r.reception_time BETWEEN $1 AND $2
+			AND r.status != 'close'
 		),
 		selected_pvz AS (
 			SELECT DISTINCT p.pvz, p.id, p.city, p.registration_date
@@ -63,6 +64,7 @@ func (p *pvzRepository) GetPVZList(ctx context.Context, tx pgx.Tx, startDate, en
 		LEFT JOIN reception_products rp ON rp.reception_id = r.reception_id AND rp.is_active = TRUE
 		LEFT JOIN products pr ON pr.product_id = rp.product_id AND pr.is_active = TRUE
 		ORDER BY p.registration_date, r.reception_time DESC
+
 	`
 
 	rows, err := tx.Query(ctx, query, startDate, endDate, offset, limit)
@@ -146,17 +148,24 @@ func (p *pvzRepository) CloseLastReception(ctx context.Context, tx pgx.Tx, pvzID
 			SET status = 'close'
 			WHERE pvz_id = $1 AND status = 'in_progress'
 			RETURNING reception_id, reception_time, pvz_id, status
+		),
+		deactivated_rp AS (
+			UPDATE reception_products
+			SET is_active = FALSE
+			WHERE reception_id IN (SELECT reception_id FROM updated)
+			RETURNING product_id
+		),
+		_ AS (
+			UPDATE products
+			SET is_active = FALSE
+			WHERE product_id IN (SELECT product_id FROM deactivated_rp)
 		)
-		UPDATE reception_products
-		SET is_active = false
-		FROM updated
-		WHERE reception_products.reception_id = updated.reception_id
-		RETURNING updated.reception_id, updated.reception_time, updated.pvz_id, updated.status
+		SELECT reception_id, reception_time, pvz_id, status FROM updated;
 	`
 
 	err := tx.QueryRow(ctx, query, pvzID).Scan(&reception.ID, &reception.Date, &reception.PVZID, &reception.Status)
 	if err != nil {
-		if err.Error() == "no rows in result set" {
+		if err == pgx.ErrNoRows {
 			return nil, fmt.Errorf("нет активной приёмки для ПВЗ %s", pvzID)
 		}
 		return nil, fmt.Errorf("не удалось закрыть приёмку: %w", err)

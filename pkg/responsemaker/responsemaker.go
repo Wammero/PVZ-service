@@ -12,7 +12,7 @@ type ErrorResponse struct {
 }
 
 func WriteJSONError(w http.ResponseWriter, message string, statusCode int) {
-	WriteJSONResponse(w, model.Error{Message: "Invalid request body"}, statusCode)
+	WriteJSONResponse(w, model.Error{Message: message}, statusCode)
 }
 
 // writeJSONResponse отправляет JSON-ответ с отступами

@@ -20,7 +20,7 @@ func NewPVZService(repo repository.PVZRepository) *pvzService {
 	return &pvzService{repo: repo}
 }
 
-func (s *pvzService) CreatePVZ(ctx context.Context, id, registrationDate, city string) error {
+func (s *pvzService) CreatePVZ(ctx context.Context, id, city string, registrationDate time.Time) error {
 	switch city {
 	case "Moscow", "Saint-Petersburg", "Kazan":
 	default:
@@ -39,12 +39,7 @@ func (s *pvzService) CreatePVZ(ctx context.Context, id, registrationDate, city s
 		creator = sql.NullInt64{Valid: false}
 	}
 
-	regDate, err := time.Parse(time.RFC3339, registrationDate)
-	if err != nil {
-		return fmt.Errorf("не удалось парсить дату регистрации: %v", err)
-	}
-
-	err = s.repo.CreatePVZ(ctx, id, city, regDate, creator)
+	err := s.repo.CreatePVZ(ctx, id, city, registrationDate, creator)
 
 	return err
 }

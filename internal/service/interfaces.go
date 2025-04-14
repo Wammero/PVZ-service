@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/Wammero/PVZ-service/internal/model"
 )
@@ -12,7 +13,7 @@ type AuthService interface {
 	DummyLogin(ctx context.Context, userRole string) (string, error)
 }
 type PVZService interface {
-	CreatePVZ(ctx context.Context, id, registrationDate, city string) error
+	CreatePVZ(ctx context.Context, id, city string, registrationDate time.Time) error
 	GetPVZList(ctx context.Context, startDateStr, endDateStr, pageStr, limitStr string) ([]model.PVZWithReceptions, error)
 	CloseLastReception(ctx context.Context, pvzID string) (*model.Reception, error)
 	DeleteLastProduct(ctx context.Context, pvzID string) error
