@@ -24,7 +24,7 @@ type PVZRepository interface {
 	Pool() *pgxpool.Pool
 }
 
-type ReceptionRepositor interface {
+type ReceptionRepository interface {
 	CreateReception(ctx context.Context, tx pgx.Tx, pvzId string) (*model.Reception, error)
 	Pool() *pgxpool.Pool
 }

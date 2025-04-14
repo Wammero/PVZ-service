@@ -9,10 +9,10 @@ import (
 )
 
 type receptionService struct {
-	repo repository.ReceptionRepositor
+	repo repository.ReceptionRepository
 }
 
-func NewReceptionService(repo repository.ReceptionRepositor) *receptionService {
+func NewReceptionService(repo repository.ReceptionRepository) *receptionService {
 	return &receptionService{repo: repo}
 }
 

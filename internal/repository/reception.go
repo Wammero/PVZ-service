@@ -10,19 +10,19 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type receptionRepositor struct {
+type receptionRepository struct {
 	pool *pgxpool.Pool
 }
 
-func NewReceptionRepository(pool *pgxpool.Pool) *receptionRepositor {
-	return &receptionRepositor{pool: pool}
+func NewReceptionRepository(pool *pgxpool.Pool) *receptionRepository {
+	return &receptionRepository{pool: pool}
 }
 
-func (r *receptionRepositor) Pool() *pgxpool.Pool {
+func (r *receptionRepository) Pool() *pgxpool.Pool {
 	return r.pool
 }
 
-func (r *receptionRepositor) CreateReception(ctx context.Context, tx pgx.Tx, pvzId string) (*model.Reception, error) {
+func (r *receptionRepository) CreateReception(ctx context.Context, tx pgx.Tx, pvzId string) (*model.Reception, error) {
 	query := `
 		WITH insert_reception AS (
 			INSERT INTO receptions (pvz_id, status)

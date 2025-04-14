@@ -9,7 +9,7 @@ import (
 type Repository struct {
 	AuthRepository     AuthRepository
 	PVZRepository      PVZRepository
-	ReceptionRepositor ReceptionRepositor
+	ReceptionRepositor ReceptionRepository
 	ProductRepository  ProductRepository
 	pool               *pgxpool.Pool
 }
@@ -33,4 +33,8 @@ func (r *Repository) Close() {
 	if r.pool != nil {
 		r.pool.Close()
 	}
+}
+
+func (r *Repository) Pool() *pgxpool.Pool {
+	return r.pool
 }
