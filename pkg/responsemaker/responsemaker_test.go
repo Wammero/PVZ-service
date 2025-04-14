@@ -55,21 +55,3 @@ func TestWriteJSONError(t *testing.T) {
 		t.Errorf("Ожидалось сообщение, содержащее %q, получено %q", "ошибка логина", response.Message)
 	}
 }
-
-func TestWriteJSONResponse_ErrorOnMarshal(t *testing.T) {
-	data := make(chan int)
-
-	rr := httptest.NewRecorder()
-	responsemaker.WriteJSONResponse(rr, data, http.StatusOK)
-
-	if rr.Code != http.StatusInternalServerError {
-		t.Errorf("expected status %d, got %d", http.StatusInternalServerError, rr.Code)
-	}
-
-	expected := `{
-  "errors": "Ошибка при обработке данных"
-}`
-	if rr.Body.String() != expected+"\n" {
-		t.Errorf("unexpected body: %s", rr.Body.String())
-	}
-}

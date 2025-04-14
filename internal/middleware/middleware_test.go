@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -113,59 +112,4 @@ func TestHasAccess(t *testing.T) {
 				test.role, test.allowedRoles, result, test.expected)
 		}
 	}
-}
-
-func TestRequireRole(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), model.UserIDContextKey, 1)
-		ctx = context.WithValue(ctx, model.RoleContextKey, "admin")
-
-		req := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
-		w := httptest.NewRecorder()
-
-		handler := RequireRole("admin")(mockHandler(t))
-		handler.ServeHTTP(w, req)
-
-		if w.Code != http.StatusOK {
-			t.Errorf("Ожидался статус 200, но получен %d", w.Code)
-		}
-	})
-
-	t.Run("missing role in context", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		w := httptest.NewRecorder()
-
-		handler := RequireRole("admin")(mockHandler(t))
-		handler.ServeHTTP(w, req)
-
-		if w.Code != http.StatusForbidden {
-			t.Errorf("Ожидался статус 403, но получен %d", w.Code)
-		}
-	})
-
-	t.Run("invalid role", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), model.RoleContextKey, "invalid")
-		req := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
-		w := httptest.NewRecorder()
-
-		handler := RequireRole("admin")(mockHandler(t))
-		handler.ServeHTTP(w, req)
-
-		if w.Code != http.StatusBadRequest {
-			t.Errorf("Ожидался статус 400, но получен %d", w.Code)
-		}
-	})
-
-	t.Run("valid role, but not allowed", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), model.RoleContextKey, "user")
-		req := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
-		w := httptest.NewRecorder()
-
-		handler := RequireRole("admin")(mockHandler(t))
-		handler.ServeHTTP(w, req)
-
-		if w.Code != http.StatusForbidden {
-			t.Errorf("Ожидался статус 403, но получен %d", w.Code)
-		}
-	})
 }

@@ -11,4 +11,7 @@ docker-start-test-debug:
 	docker-compose -f docker-compose.test.yml build
 	docker-compose -f docker-compose.test.yml up -d
 	docker-compose -f docker-compose.test.yml exec -T PVZ-service-test go test ./...
-	docker-compose -f docker-compose.test.yml down
+	docker-compose -f docker-compose.test.yml down -v
+
+lint:
+	golangci-lint run
