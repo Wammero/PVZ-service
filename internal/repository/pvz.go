@@ -23,7 +23,7 @@ func (r *pvzRepository) Pool() *pgxpool.Pool {
 	return r.pool
 }
 
-func (p *pvzRepository) CreatePVZ(ctx context.Context, id, city string, registrationDate time.Time, creator sql.NullInt64) error {
+func (p *pvzRepository) CreatePVZ(ctx context.Context, id, city string, registrationDate time.Time, creator sql.NullString) error {
 	query := `
 		INSERT INTO pvz (id, creator_id, registration_date, city)
 		VALUES ($1, $2, $3, $4);`

@@ -1,6 +1,6 @@
 -- Пользователи
 CREATE TABLE IF NOT EXISTS users (
-    user_id SERIAL PRIMARY KEY,
+    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid() UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     salt VARCHAR(255) NOT NULL,
@@ -13,13 +13,13 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS pvz (
     pvz SERIAL PRIMARY KEY,
     id UUID NOT NULL UNIQUE,  
-    creator_id INT, 
+    creator_id UUID,
     registration_date TIMESTAMP NOT NULL,
     city VARCHAR(100) NOT NULL,
     FOREIGN KEY (creator_id) REFERENCES users(user_id)
 );
 
--- Приёмки товара
+-- Остальные таблицы остаются без изменений
 CREATE TABLE IF NOT EXISTS receptions (
     reception_serial_id SERIAL PRIMARY KEY,
     reception_id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
@@ -29,18 +29,16 @@ CREATE TABLE IF NOT EXISTS receptions (
     FOREIGN KEY (pvz_id) REFERENCES pvz(id)
 );
 
--- Товары
 CREATE TABLE IF NOT EXISTS products (
     product_serial_id SERIAL PRIMARY KEY,
     product_id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,  
     reception_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    type TEXT NOT NULL CHECK (type IN ('electronics', 'clothing', 'footwear')), 
+    type TEXT NOT NULL, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE
 );
 
--- Принятые товары в рамках приёмки
 CREATE TABLE IF NOT EXISTS reception_products (
     id SERIAL PRIMARY KEY,
     reception_id UUID NOT NULL,
@@ -50,6 +48,7 @@ CREATE TABLE IF NOT EXISTS reception_products (
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
+-- Индексы
 CREATE INDEX IF NOT EXISTS idx_receptions_pvz_id ON receptions (pvz_id);
 CREATE INDEX IF NOT EXISTS idx_receptions_reception_time ON receptions (reception_time);
 CREATE INDEX IF NOT EXISTS idx_receptions_status ON receptions (status);

@@ -8,8 +8,8 @@ import (
 )
 
 type AuthService interface {
-	Register(ctx context.Context, email, password string, userRole model.UserRole) error
-	Login(ctx context.Context, email, password string) error
+	Register(ctx context.Context, email, password string, userRole string) error
+	Login(ctx context.Context, email, password string) (string, error)
 	DummyLogin(ctx context.Context, userRole string) (string, error)
 }
 type PVZService interface {

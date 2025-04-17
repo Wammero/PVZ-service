@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,7 +22,7 @@ func mockHandler(t *testing.T) http.Handler {
 	})
 }
 
-func generateTestToken(t *testing.T, userID int, role string, secret string) string {
+func generateTestToken(t *testing.T, userID string, role string, secret string) string {
 	jwt.SetSecret(secret)
 	claims := &model.Claims{
 		UserID: userID,
@@ -41,7 +42,7 @@ func generateTestToken(t *testing.T, userID int, role string, secret string) str
 
 func TestJWTValidator_Success(t *testing.T) {
 	secret := "test-secret"
-	token := generateTestToken(t, 42, "admin", secret)
+	token := generateTestToken(t, "42", "admin", secret)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -111,5 +112,57 @@ func TestHasAccess(t *testing.T) {
 			t.Errorf("hasAccess(%q, %v) = %v; ожидалось %v",
 				test.role, test.allowedRoles, result, test.expected)
 		}
+	}
+}
+
+func TestRequireRole(t *testing.T) {
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	tests := []struct {
+		name         string
+		role         string
+		allowedRoles []string
+		expectedCode int
+	}{
+		{
+			name:         "Разрешенная роль",
+			role:         "employee",
+			allowedRoles: []string{"employee", "moderator"},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "Запрещенная роль",
+			role:         "employee",
+			allowedRoles: []string{"moderator"},
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "Несуществующая роль",
+			role:         "invalid_role",
+			allowedRoles: []string{"employee", "moderator"},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         "Роль отсутствует в контексте",
+			role:         "",
+			allowedRoles: []string{"employee", "moderator"},
+			expectedCode: http.StatusForbidden,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			ctx := context.WithValue(req.Context(), model.RoleContextKey, tt.role)
+			req = req.WithContext(ctx)
+			rr := httptest.NewRecorder()
+			handler := RequireRole(tt.allowedRoles...)(nextHandler)
+			handler.ServeHTTP(rr, req)
+			if rr.Code != tt.expectedCode {
+				t.Errorf("RequireRole() код ответа = %v; ожидался %v", rr.Code, tt.expectedCode)
+			}
+		})
 	}
 }

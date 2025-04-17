@@ -21,7 +21,7 @@ func TestSetAndGetSecret(t *testing.T) {
 func TestGenerateJWT(t *testing.T) {
 	SetSecret("mysecret")
 
-	userID := 123
+	userID := "123"
 	role := "admin"
 
 	tokenStr, err := GenerateJWT(userID, role)
@@ -50,7 +50,7 @@ func TestGenerateJWT(t *testing.T) {
 	}
 
 	if claims.UserID != userID {
-		t.Errorf("Expected UserID %d, got %d", userID, claims.UserID)
+		t.Errorf("Expected UserID %s, got %s", userID, claims.UserID)
 	}
 
 	if claims.Role != role {
@@ -67,14 +67,14 @@ func TestGenerateJWT(t *testing.T) {
 }
 
 func TestGetUserID(t *testing.T) {
-	ctx := context.WithValue(context.Background(), model.UserIDContextKey, 99)
+	ctx := context.WithValue(context.Background(), model.UserIDContextKey, "99")
 	id, ok := GetUserID(ctx)
 
 	if !ok {
 		t.Error("Expected to find user ID in context, but didn't")
 	}
-	if id != 99 {
-		t.Errorf("Expected ID 99, got %d", id)
+	if id != "99" {
+		t.Errorf("Expected ID 99, got %s", id)
 	}
 }
 

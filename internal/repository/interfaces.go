@@ -11,13 +11,13 @@ import (
 )
 
 type AuthRepository interface {
-	Register(ctx context.Context, email, password string, userRole model.UserRole) error
-	Login(ctx context.Context, email, password string) error
+	Register(ctx context.Context, tx pgx.Tx, email, password, salt, userRole string) error
+	Login(ctx context.Context, tx pgx.Tx, email string) (string, string, string, string, error)
 	Pool() *pgxpool.Pool
 }
 
 type PVZRepository interface {
-	CreatePVZ(ctx context.Context, id, city string, regDate time.Time, creator sql.NullInt64) error
+	CreatePVZ(ctx context.Context, id, city string, regDate time.Time, creator sql.NullString) error
 	GetPVZList(ctx context.Context, tx pgx.Tx, startDate, endDate time.Time, page, limit int) ([]model.PVZWithReceptions, error)
 	CloseLastReception(ctx context.Context, tx pgx.Tx, pvzID string) (*model.Reception, error)
 	DeleteLastProduct(ctx context.Context, tx pgx.Tx, pvzID string) error

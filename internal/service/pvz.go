@@ -32,11 +32,11 @@ func (s *pvzService) CreatePVZ(ctx context.Context, id, city string, registratio
 		return fmt.Errorf("не удалось получить userID из JWT токена")
 	}
 
-	var creator sql.NullInt64
-	if creatorID != -1 {
-		creator = sql.NullInt64{Int64: int64(creatorID), Valid: true}
+	var creator sql.NullString
+	if creatorID != "-1" {
+		creator = sql.NullString{String: creatorID, Valid: true}
 	} else {
-		creator = sql.NullInt64{Valid: false}
+		creator = sql.NullString{Valid: false}
 	}
 
 	err := s.repo.CreatePVZ(ctx, id, city, registrationDate, creator)

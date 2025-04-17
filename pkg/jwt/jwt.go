@@ -18,7 +18,7 @@ func GetSecret() []byte {
 	return jwtSecret
 }
 
-func GenerateJWT(userID int, role string) (string, error) {
+func GenerateJWT(userID string, role string) (string, error) {
 	claims := &model.Claims{
 		UserID: userID,
 		Role:   role,
@@ -32,8 +32,8 @@ func GenerateJWT(userID int, role string) (string, error) {
 	return token.SignedString(jwtSecret)
 }
 
-func GetUserID(ctx context.Context) (int, bool) {
-	id, ok := ctx.Value(model.UserIDContextKey).(int)
+func GetUserID(ctx context.Context) (string, bool) {
+	id, ok := ctx.Value(model.UserIDContextKey).(string)
 	return id, ok
 }
 
