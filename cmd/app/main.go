@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"net/http"
+	"time"
 
 	"github.com/Wammero/PVZ-service/internal/config.go"
 	"github.com/Wammero/PVZ-service/internal/cron"
@@ -12,6 +12,7 @@ import (
 	"github.com/Wammero/PVZ-service/internal/service"
 	"github.com/Wammero/PVZ-service/pkg/jwt"
 	"github.com/Wammero/PVZ-service/pkg/migration"
+	"github.com/Wammero/PVZ-service/pkg/server"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -39,8 +40,9 @@ func main() {
 	c.Start()
 	defer c.Stop()
 
-	log.Printf("Server is running on port %s", cfg.Server.Port)
-	if err := http.ListenAndServe(":"+cfg.Server.Port, r); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+	server.Start(server.Config{
+		Addr:    ":" + cfg.Server.Port,
+		Handler: r,
+		Timeout: 5 * time.Second,
+	})
 }
