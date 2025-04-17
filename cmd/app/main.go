@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Wammero/PVZ-service/internal/config.go"
+	"github.com/Wammero/PVZ-service/internal/cron"
 	"github.com/Wammero/PVZ-service/internal/handler"
 	"github.com/Wammero/PVZ-service/internal/repository"
 	"github.com/Wammero/PVZ-service/internal/router"
@@ -33,6 +34,10 @@ func main() {
 
 	h.SetupRoutes(r)
 	r.Handle("/metrics", promhttp.Handler())
+
+	c := cron.New(repo)
+	c.Start()
+	defer c.Stop()
 
 	log.Printf("Server is running on port %s", cfg.Server.Port)
 	if err := http.ListenAndServe(":"+cfg.Server.Port, r); err != nil {
